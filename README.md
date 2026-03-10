@@ -3,7 +3,8 @@
 1. Clone repository:
 
 ```bash
-git clone
+git clone https://github.com/farazht/cpsc444.git
+cd cpsc444
 ```
 
 2. Install dependencies:
