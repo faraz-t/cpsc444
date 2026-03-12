@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import {
   Slot,
   useGlobalSearchParams,
@@ -54,7 +55,15 @@ export default function RootLayout() {
               <View style={styles.backButtonPlaceholder} />
             )}
 
-            <Text style={styles.headerTitle}>Witness</Text>
+            <View style={styles.headerBrand}>
+              <Image
+                source={require("../assets/images/logo.png")}
+                contentFit="contain"
+                style={styles.headerLogo}
+              />
+              <View style={styles.headerDivider} />
+              <Text style={styles.headerTitle}>Witness</Text>
+            </View>
             <View style={styles.backButtonPlaceholder} />
           </View>
 
@@ -181,6 +190,20 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#ebfffb",
     letterSpacing: 0.4,
+  },
+  headerBrand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  headerLogo: {
+    width: 26,
+    height: 26,
+  },
+  headerDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: "#8fd2c9",
   },
   mainSurface: {
     flex: 1,

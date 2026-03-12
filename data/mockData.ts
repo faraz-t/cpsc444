@@ -336,12 +336,12 @@ export const weeklyStats: Array<{
 
 export const profileTodayStats = {
   status: "Focusing",
-  focusMinutes: 138,
-  sessionsDone: 5,
-  distractions: 2,
-  streakDays: 6,
+  focusMinutes: 124,
+  sessionsDone: 4,
+  distractions: 3,
+  streakDays: 9,
   goalMinutes: 180,
-  activeSessionTimer: "17:24",
+  activeSessionTimer: "14:36",
 };
 
 export const profileBioText =

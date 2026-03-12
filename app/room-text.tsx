@@ -2,7 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { avatarSources, mockRooms, UserStatus } from "../data/mockData";
+import {
+  avatarSources,
+  mockRooms,
+  profileTodayStats,
+  UserStatus,
+} from "../data/mockData";
 
 const statusStyles: Record<
   UserStatus,
@@ -52,6 +57,22 @@ export default function RoomScreen() {
   const roomSummaryStats = selectedRoom.summary;
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
   const roomDescription = selectedRoom.description;
+  const viewerAvatarId = avatar && avatarSources[avatar] ? avatar : "1";
+
+  const membersWithViewer = [
+    {
+      id: "viewer-you",
+      name: "You",
+      avatar: viewerAvatarId,
+      status: "focusing" as UserStatus,
+      focusMinutes: profileTodayStats.focusMinutes,
+      sessionsDone: profileTodayStats.sessionsDone,
+      distractions: profileTodayStats.distractions,
+      streakDays: profileTodayStats.streakDays,
+      currentTimer: profileTodayStats.activeSessionTimer,
+    },
+    ...selectedRoom.members,
+  ];
 
   const statCards = [
     {
@@ -148,7 +169,7 @@ export default function RoomScreen() {
 
       <Text style={styles.sectionTitle}>Active Now</Text>
 
-      {selectedRoom.members.map((member) => {
+      {membersWithViewer.map((member) => {
         const avatarSource = avatarSources[member.avatar];
         const status = statusStyles[member.status];
 

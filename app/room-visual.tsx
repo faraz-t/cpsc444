@@ -1,7 +1,17 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { avatarSources, mockRooms } from "../data/mockData";
+import { avatarSources, mockRooms, profileTodayStats } from "../data/mockData";
+
+type ChartEntity = {
+  id: string;
+  name: string;
+  avatar: string;
+  focusMinutes: number;
+  sessionsDone: number;
+  streakDays: number;
+  distractions: number;
+};
 
 type MetricConfig = {
   key: "sessionsDone" | "streakDays" | "distractions";
@@ -15,20 +25,20 @@ const metricConfigs: MetricConfig[] = [
   {
     key: "sessionsDone",
     title: "Sessions",
-    color: "#4c7fd8",
-    avgColor: "#2f4f97",
+    color: "#3d95c6",
+    avgColor: "#256b8c",
   },
   {
     key: "streakDays",
     title: "Streak Days",
-    color: "#7a61d2",
-    avgColor: "#57409f",
+    color: "#2ea89f",
+    avgColor: "#1f7d77",
   },
   {
     key: "distractions",
     title: "Distractions",
-    color: "#d58a32",
-    avgColor: "#9a5f18",
+    color: "#5db6cf",
+    avgColor: "#3b8ea6",
     lowerIsBetter: true,
   },
 ];
@@ -67,18 +77,32 @@ export default function RoomVisualScreen() {
     mockRooms.find((room) => room.id === roomIdParam) ?? fallbackRoom;
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
 
-  const members = selectedRoom.members;
-  const memberNames = members.map((member) => member.name.toLowerCase());
-  const viewerMember =
-    (name && memberNames.includes(name.toLowerCase())
-      ? members.find(
-          (member) => member.name.toLowerCase() === name.toLowerCase(),
-        )
-      : undefined) ?? members[0];
+  const members: ChartEntity[] = selectedRoom.members.map((member) => ({
+    id: member.id,
+    name: member.name,
+    avatar: member.avatar,
+    focusMinutes: member.focusMinutes,
+    sessionsDone: member.sessionsDone,
+    streakDays: member.streakDays,
+    distractions: member.distractions,
+  }));
 
-  const focusValues = members.map((member) => member.focusMinutes);
+  const viewerAvatarId = avatar && avatarSources[avatar] ? avatar : "1";
+  const viewerEntity: ChartEntity = {
+    id: "viewer-you",
+    name: "You",
+    avatar: viewerAvatarId,
+    focusMinutes: profileTodayStats.focusMinutes,
+    sessionsDone: profileTodayStats.sessionsDone,
+    streakDays: profileTodayStats.streakDays,
+    distractions: profileTodayStats.distractions,
+  };
+
+  const chartEntities = [viewerEntity, ...members];
+
+  const focusValues = chartEntities.map((member) => member.focusMinutes);
   const maxFocus = Math.max(...focusValues, 1);
-  const avgFocus = average(focusValues);
+  const avgFocus = average(members.map((member) => member.focusMinutes));
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -123,9 +147,9 @@ export default function RoomVisualScreen() {
             ]}
           />
 
-          {members.map((member) => {
+          {chartEntities.map((member) => {
             const progress = (member.focusMinutes / maxFocus) * 100;
-            const isViewer = member.id === viewerMember.id;
+            const isViewer = member.id === viewerEntity.id;
 
             return (
               <View key={member.id} style={styles.raceRow}>
@@ -159,9 +183,9 @@ export default function RoomVisualScreen() {
       </View>
 
       {metricConfigs.map((metric) => {
-        const values = members.map((member) => member[metric.key]);
+        const values = chartEntities.map((member) => member[metric.key]);
         const maxValue = Math.max(...values, 1);
-        const avgValue = average(values);
+        const avgValue = average(members.map((member) => member[metric.key]));
 
         return (
           <View key={metric.key} style={styles.chartCard}>
@@ -181,10 +205,10 @@ export default function RoomVisualScreen() {
                 ]}
               />
 
-              {members.map((member) => {
+              {chartEntities.map((member) => {
                 const value = member[metric.key];
                 const barHeight = Math.max(8, (value / maxValue) * 100);
-                const isViewer = member.id === viewerMember.id;
+                const isViewer = member.id === viewerEntity.id;
 
                 return (
                   <View key={member.id + metric.key} style={styles.columnWrap}>
