@@ -2,13 +2,13 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { avatarIds, avatarSources } from "../data/mockData";
 
@@ -16,6 +16,9 @@ export default function LoginScreen() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState("1");
+  const [selectedCondition, setSelectedCondition] = useState<"text" | "visual">(
+    "text",
+  );
 
   const handleContinue = () => {
     const trimmedName = name.trim();
@@ -23,7 +26,11 @@ export default function LoginScreen() {
 
     router.push({
       pathname: "./menu",
-      params: { name: fallbackName, avatar: selectedAvatar },
+      params: {
+        name: fallbackName,
+        avatar: selectedAvatar,
+        condition: selectedCondition,
+      },
     } as never);
   };
 
@@ -33,7 +40,6 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <View style={styles.card}>
-        <Text style={styles.kicker}>APP NAME</Text>
         <Text style={styles.title}>Welcome!</Text>
         <Text style={styles.subtitle}>Please enter your name to continue</Text>
 
@@ -75,6 +81,45 @@ export default function LoginScreen() {
           })}
         </View>
 
+        <Text style={[styles.subtitle, styles.conditionPrompt]}>
+          Please select a condition
+        </Text>
+        <View style={styles.conditionRow}>
+          <Pressable
+            style={[
+              styles.conditionButton,
+              selectedCondition === "text" && styles.conditionButtonSelected,
+            ]}
+            onPress={() => setSelectedCondition("text")}
+          >
+            <Text
+              style={[
+                styles.conditionText,
+                selectedCondition === "text" && styles.conditionTextSelected,
+              ]}
+            >
+              Text
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.conditionButton,
+              selectedCondition === "visual" && styles.conditionButtonSelected,
+            ]}
+            onPress={() => setSelectedCondition("visual")}
+          >
+            <Text
+              style={[
+                styles.conditionText,
+                selectedCondition === "visual" && styles.conditionTextSelected,
+              ]}
+            >
+              Visual
+            </Text>
+          </Pressable>
+        </View>
+
         <Pressable style={styles.primaryButton} onPress={handleContinue}>
           <Text style={styles.primaryButtonText}>Continue</Text>
         </Pressable>
@@ -102,14 +147,6 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 2,
   },
-  kicker: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#168a80",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
   title: {
     fontSize: 34,
     fontWeight: "800",
@@ -124,6 +161,37 @@ const styles = StyleSheet.create({
   avatarPrompt: {
     marginTop: 4,
     marginBottom: 12,
+  },
+  conditionPrompt: {
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  conditionRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 18,
+  },
+  conditionButton: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d6e8e4",
+    backgroundColor: "#f7fcfb",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  conditionButtonSelected: {
+    borderColor: "#11897e",
+    backgroundColor: "#e8f6f3",
+  },
+  conditionText: {
+    fontSize: 16,
+    color: "#5f7672",
+    fontWeight: "600",
+  },
+  conditionTextSelected: {
+    color: "#0f6a61",
+    fontWeight: "700",
   },
   avatarGrid: {
     flexDirection: "row",

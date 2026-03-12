@@ -14,6 +14,7 @@ export default function RootLayout() {
   const globalParams = useGlobalSearchParams<{
     name?: string;
     avatar?: string;
+    condition?: string;
   }>();
 
   const name = Array.isArray(globalParams.name)
@@ -22,10 +23,14 @@ export default function RootLayout() {
   const avatar = Array.isArray(globalParams.avatar)
     ? globalParams.avatar[0]
     : globalParams.avatar;
+  const condition = Array.isArray(globalParams.condition)
+    ? globalParams.condition[0]
+    : globalParams.condition;
 
   const sharedParams = {
     ...(name ? { name } : {}),
     ...(avatar ? { avatar } : {}),
+    ...(condition ? { condition } : {}),
   };
 
   const isHome = pathname === "/menu";
@@ -49,7 +54,7 @@ export default function RootLayout() {
               <View style={styles.backButtonPlaceholder} />
             )}
 
-            <Text style={styles.headerTitle}>App Name</Text>
+            <Text style={styles.headerTitle}>Witness</Text>
             <View style={styles.backButtonPlaceholder} />
           </View>
 

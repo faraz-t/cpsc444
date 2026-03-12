@@ -3,11 +3,11 @@ import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-    avatarSources,
-    MoodType,
-    profileBioText,
-    profileTodayStats,
-    weeklyStats,
+  avatarSources,
+  MoodType,
+  profileBioText,
+  profileTodayStats,
+  weeklyStats,
 } from "../data/mockData";
 
 const moodFace = {

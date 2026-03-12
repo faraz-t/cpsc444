@@ -2,22 +2,30 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { avatarSources, mockRooms } from "../data/mockData";
 
 export default function MainMenuScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ name?: string; avatar?: string }>();
+  const params = useLocalSearchParams<{
+    name?: string;
+    avatar?: string;
+    condition?: string;
+  }>();
   const name = Array.isArray(params.name) ? params.name[0] : params.name;
   const avatar = Array.isArray(params.avatar)
     ? params.avatar[0]
     : params.avatar;
+  const condition = Array.isArray(params.condition)
+    ? params.condition[0]
+    : params.condition;
+  const selectedCondition = condition === "visual" ? "visual" : "text";
   const avatarSource = avatar ? avatarSources[avatar] : undefined;
   const displayName = name?.trim() ? name : "User";
 
@@ -37,6 +45,7 @@ export default function MainMenuScreen() {
                 params: {
                   ...(name ? { name } : {}),
                   ...(avatar ? { avatar } : {}),
+                  ...(condition ? { condition } : {}),
                 },
               } as never)
             }
@@ -96,12 +105,16 @@ export default function MainMenuScreen() {
             style={styles.listRoomCard}
             onPress={() =>
               router.push({
-                pathname: "./room",
+                pathname:
+                  selectedCondition === "visual"
+                    ? "./room-visual"
+                    : "./room-text",
                 params: {
                   room: room.name,
                   roomId: room.id,
                   ...(name ? { name } : {}),
                   ...(avatar ? { avatar } : {}),
+                  ...(condition ? { condition } : {}),
                 },
               } as never)
             }
