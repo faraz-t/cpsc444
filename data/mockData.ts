@@ -348,3 +348,8 @@ export const profileBioText =
   "4th year UBC student studying Computer Science. Open to join any rooms, feel free to invite me!";
 
 export type UserStatus = "focusing" | "distracted" | "break";
+
+export const defaultTimerMinutes = 25;
+export const timerMinStep = 5;
+export const timerMinValue = 5;
+export const timerMaxValue = 120;

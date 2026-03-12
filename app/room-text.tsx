@@ -8,6 +8,7 @@ import {
   profileTodayStats,
   UserStatus,
 } from "../data/mockData";
+import FocusTimerStarter from "./components/session";
 
 const statusStyles: Record<
   UserStatus,
@@ -111,6 +112,7 @@ export default function RoomScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <FocusTimerStarter />
       <View style={styles.heroCard}>
         <View style={styles.heroTopRow}>
           <View style={styles.heroTitleWrap}>
