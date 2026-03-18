@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
-  Slot,
-  useGlobalSearchParams,
-  usePathname,
-  useRouter,
+    Slot,
+    useGlobalSearchParams,
+    usePathname,
+    useRouter,
 } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { SessionProvider } from "./state/session-store";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -40,110 +41,115 @@ export default function RootLayout() {
   const showBackButton = pathname !== "/login" && pathname !== "/menu";
 
   return (
-    <View style={styles.outerShell}>
-      <View style={styles.deviceFrame}>
-        <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-          <View style={styles.header}>
-            {showBackButton ? (
-              <Pressable
-                style={styles.backButton}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="chevron-back" size={24} color="#ebfffb" />
-              </Pressable>
-            ) : (
+    <SessionProvider>
+      <View style={styles.outerShell}>
+        <View style={styles.deviceFrame}>
+          <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+            <View style={styles.header}>
+              {showBackButton ? (
+                <Pressable
+                  style={styles.backButton}
+                  onPress={() => router.back()}
+                >
+                  <Ionicons name="chevron-back" size={24} color="#ebfffb" />
+                </Pressable>
+              ) : (
+                <View style={styles.backButtonPlaceholder} />
+              )}
+
+              <View style={styles.headerBrand}>
+                <Image
+                  source={require("../assets/images/logo.png")}
+                  contentFit="contain"
+                  style={styles.headerLogo}
+                />
+                <View style={styles.headerDivider} />
+                <Text style={styles.headerTitle}>Witness</Text>
+              </View>
               <View style={styles.backButtonPlaceholder} />
-            )}
-
-            <View style={styles.headerBrand}>
-              <Image
-                source={require("../assets/images/logo.png")}
-                contentFit="contain"
-                style={styles.headerLogo}
-              />
-              <View style={styles.headerDivider} />
-              <Text style={styles.headerTitle}>Witness</Text>
             </View>
-            <View style={styles.backButtonPlaceholder} />
-          </View>
 
-          <View style={styles.mainSurface}>
-            <Slot />
-          </View>
+            <View style={styles.mainSurface}>
+              <Slot />
+            </View>
 
-          <View style={styles.footer}>
-            <Pressable
-              style={styles.footerItem}
-              onPress={() =>
-                router.push({
-                  pathname: "./menu",
-                  params: sharedParams,
-                } as never)
-              }
-            >
-              <Ionicons
-                name={isHome ? "home" : "home-outline"}
-                size={24}
-                color={isHome ? "#ebfffb" : "#bfeee7"}
-              />
-              <Text
-                style={[styles.footerLabel, isHome && styles.footerLabelActive]}
+            <View style={styles.footer}>
+              <Pressable
+                style={styles.footerItem}
+                onPress={() =>
+                  router.push({
+                    pathname: "./menu",
+                    params: sharedParams,
+                  } as never)
+                }
               >
-                Home
-              </Text>
-            </Pressable>
+                <Ionicons
+                  name={isHome ? "home" : "home-outline"}
+                  size={24}
+                  color={isHome ? "#ebfffb" : "#bfeee7"}
+                />
+                <Text
+                  style={[
+                    styles.footerLabel,
+                    isHome && styles.footerLabelActive,
+                  ]}
+                >
+                  Home
+                </Text>
+              </Pressable>
 
-            <Pressable
-              style={styles.footerItem}
-              onPress={() =>
-                router.push({
-                  pathname: "./profile",
-                  params: sharedParams,
-                } as never)
-              }
-            >
-              <Ionicons
-                name={isProfile ? "person" : "person-outline"}
-                size={24}
-                color={isProfile ? "#ebfffb" : "#bfeee7"}
-              />
-              <Text
-                style={[
-                  styles.footerLabel,
-                  isProfile && styles.footerLabelActive,
-                ]}
+              <Pressable
+                style={styles.footerItem}
+                onPress={() =>
+                  router.push({
+                    pathname: "./profile",
+                    params: sharedParams,
+                  } as never)
+                }
               >
-                Profile
-              </Text>
-            </Pressable>
+                <Ionicons
+                  name={isProfile ? "person" : "person-outline"}
+                  size={24}
+                  color={isProfile ? "#ebfffb" : "#bfeee7"}
+                />
+                <Text
+                  style={[
+                    styles.footerLabel,
+                    isProfile && styles.footerLabelActive,
+                  ]}
+                >
+                  Profile
+                </Text>
+              </Pressable>
 
-            <Pressable
-              style={styles.footerItem}
-              onPress={() =>
-                router.push({
-                  pathname: "./settings",
-                  params: sharedParams,
-                } as never)
-              }
-            >
-              <Ionicons
-                name={isSettings ? "settings" : "settings-outline"}
-                size={24}
-                color={isSettings ? "#ebfffb" : "#bfeee7"}
-              />
-              <Text
-                style={[
-                  styles.footerLabel,
-                  isSettings && styles.footerLabelActive,
-                ]}
+              <Pressable
+                style={styles.footerItem}
+                onPress={() =>
+                  router.push({
+                    pathname: "./settings",
+                    params: sharedParams,
+                  } as never)
+                }
               >
-                Settings
-              </Text>
-            </Pressable>
-          </View>
-        </SafeAreaView>
+                <Ionicons
+                  name={isSettings ? "settings" : "settings-outline"}
+                  size={24}
+                  color={isSettings ? "#ebfffb" : "#bfeee7"}
+                />
+                <Text
+                  style={[
+                    styles.footerLabel,
+                    isSettings && styles.footerLabelActive,
+                  ]}
+                >
+                  Settings
+                </Text>
+              </Pressable>
+            </View>
+          </SafeAreaView>
+        </View>
       </View>
-    </View>
+    </SessionProvider>
   );
 }
 

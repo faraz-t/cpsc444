@@ -3,12 +3,12 @@ import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-  avatarSources,
-  MoodType,
-  profileBioText,
-  profileTodayStats,
-  weeklyStats,
+    avatarSources,
+    MoodType,
+    profileBioText,
+    weeklyStats,
 } from "../data/mockData";
+import { useSessionStore } from "./state/session-store";
 
 const moodFace = {
   happy: "happy-outline",
@@ -22,21 +22,20 @@ const moodColor = {
   sad: "#7a4f9e",
 } as const;
 
-const typedWeeklyStats: Array<{
+const typedWeeklyStats: {
   day: string;
   height: number;
   mood: MoodType;
   color: string;
-}> = weeklyStats as Array<{
+}[] = weeklyStats as {
   day: string;
   height: number;
   mood: MoodType;
   color: string;
-}>;
-
-const todayStats = profileTodayStats;
+}[];
 
 export default function ProfileScreen() {
+  const { viewerStats } = useSessionStore();
   const params = useLocalSearchParams<{ name?: string; avatar?: string }>();
   const name = Array.isArray(params.name) ? params.name[0] : params.name;
   const avatar = Array.isArray(params.avatar)
@@ -75,7 +74,7 @@ export default function ProfileScreen() {
         <View style={styles.statusTopRow}>
           <View style={styles.statusBadge}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>{todayStats.status}</Text>
+            <Text style={styles.statusText}>{viewerStats.status}</Text>
           </View>
         </View>
 
@@ -83,13 +82,13 @@ export default function ProfileScreen() {
           <View>
             <Text style={styles.statusTimerLabel}>Current Session</Text>
             <Text style={styles.statusTimerValue}>
-              {todayStats.activeSessionTimer}
+              {viewerStats.activeSessionTimer}
             </Text>
           </View>
           <View>
             <Text style={styles.statusTimerLabel}>Today Goal</Text>
             <Text style={styles.statusTimerValue}>
-              {todayStats.focusMinutes}/{todayStats.goalMinutes}m
+              {viewerStats.focusMinutes}/{viewerStats.goalMinutes}m
             </Text>
           </View>
         </View>
@@ -102,7 +101,7 @@ export default function ProfileScreen() {
                 width: `${Math.min(
                   100,
                   Math.round(
-                    (todayStats.focusMinutes / todayStats.goalMinutes) * 100,
+                    (viewerStats.focusMinutes / viewerStats.goalMinutes) * 100,
                   ),
                 )}%`,
               },
@@ -113,19 +112,19 @@ export default function ProfileScreen() {
 
       <View style={styles.quickStatsGrid}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{todayStats.focusMinutes}</Text>
+          <Text style={styles.statValue}>{viewerStats.focusMinutes}</Text>
           <Text style={styles.statLabel}>Focus Min Today</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{todayStats.sessionsDone}</Text>
+          <Text style={styles.statValue}>{viewerStats.sessionsDone}</Text>
           <Text style={styles.statLabel}>Sessions Done</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{todayStats.distractions}</Text>
+          <Text style={styles.statValue}>{viewerStats.distractions}</Text>
           <Text style={styles.statLabel}>Distractions</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{todayStats.streakDays}</Text>
+          <Text style={styles.statValue}>{viewerStats.streakDays}</Text>
           <Text style={styles.statLabel}>Day Streak</Text>
         </View>
       </View>

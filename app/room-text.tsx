@@ -1,14 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import {
-  avatarSources,
-  mockRooms,
-  profileTodayStats,
-  UserStatus,
-} from "../data/mockData";
+import { avatarSources, mockRooms, UserStatus } from "../data/mockData";
 import FocusTimerStarter from "./components/session";
+import { useSessionStore } from "./state/session-store";
 
 const statusStyles: Record<
   UserStatus,
@@ -36,6 +33,8 @@ const statusStyles: Record<
 
 export default function RoomScreen() {
   const router = useRouter();
+  const { viewerStats, getMembersForRoom, setCurrentRoomId } =
+    useSessionStore();
   const params = useLocalSearchParams<{
     name?: string;
     avatar?: string;
@@ -59,20 +58,31 @@ export default function RoomScreen() {
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
   const roomDescription = selectedRoom.description;
   const viewerAvatarId = avatar && avatarSources[avatar] ? avatar : "1";
+  const runtimeMembers = getMembersForRoom(selectedRoom.id);
+  const viewerStatus: UserStatus =
+    viewerStats.status === "Focusing"
+      ? "focusing"
+      : viewerStats.status === "Paused"
+        ? "break"
+        : "break";
+
+  React.useEffect(() => {
+    setCurrentRoomId(selectedRoom.id);
+  }, [selectedRoom.id, setCurrentRoomId]);
 
   const membersWithViewer = [
     {
       id: "viewer-you",
       name: "You",
       avatar: viewerAvatarId,
-      status: "focusing" as UserStatus,
-      focusMinutes: profileTodayStats.focusMinutes,
-      sessionsDone: profileTodayStats.sessionsDone,
-      distractions: profileTodayStats.distractions,
-      streakDays: profileTodayStats.streakDays,
-      currentTimer: profileTodayStats.activeSessionTimer,
+      status: viewerStatus,
+      focusMinutes: viewerStats.focusMinutes,
+      sessionsDone: viewerStats.sessionsDone,
+      distractions: viewerStats.distractions,
+      streakDays: viewerStats.streakDays,
+      currentTimer: viewerStats.activeSessionTimer,
     },
-    ...selectedRoom.members,
+    ...runtimeMembers,
   ];
 
   const statCards = [

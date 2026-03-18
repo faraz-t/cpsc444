@@ -1,42 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  defaultTimerMinutes,
-  timerMinStep,
-  timerMinValue,
-  timerMaxValue,
-} from "../../data/mockData";
-
-type TimerState = "idle" | "running" | "paused";
+import { timerMaxValue, timerMinValue } from "../../data/mockData";
+import { useSessionStore } from "../state/session-store";
 
 export default function FocusTimerStarter() {
-  const [timerState, setTimerState] = useState<TimerState>("idle");
-  const [durationMinutes, setDurationMinutes] = useState(defaultTimerMinutes);
-  const [remainingSeconds, setRemainingSeconds] = useState(
-    defaultTimerMinutes * 60
-  );
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (timerState === "running") {
-      intervalRef.current = setInterval(() => {
-        setRemainingSeconds((prev) => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            setTimerState("idle");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [timerState]);
+  const {
+    timerState,
+    durationMinutes,
+    remainingSeconds,
+    decrementDuration,
+    incrementDuration,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    resetTimer,
+  } = useSessionStore();
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -47,37 +26,27 @@ export default function FocusTimerStarter() {
   };
 
   const handleDecrement = () => {
-    setDurationMinutes((prev) => {
-      const next = Math.max(timerMinValue, prev - timerMinStep);
-      setRemainingSeconds(next * 60);
-      return next;
-    });
+    decrementDuration();
   };
 
   const handleIncrement = () => {
-    setDurationMinutes((prev) => {
-      const next = Math.min(timerMaxValue, prev + timerMinStep);
-      setRemainingSeconds(next * 60);
-      return next;
-    });
+    incrementDuration();
   };
 
   const handleStart = () => {
-    setRemainingSeconds(durationMinutes * 60);
-    setTimerState("running");
+    startTimer();
   };
 
   const handlePause = () => {
-    setTimerState("paused");
+    pauseTimer();
   };
 
   const handleResume = () => {
-    setTimerState("running");
+    resumeTimer();
   };
 
   const handleReset = () => {
-    setTimerState("idle");
-    setRemainingSeconds(durationMinutes * 60);
+    resetTimer();
   };
 
   const progress = 1 - remainingSeconds / (durationMinutes * 60);
@@ -126,9 +95,7 @@ export default function FocusTimerStarter() {
               <Text style={styles.timerText}>
                 {formatTime(remainingSeconds)}
               </Text>
-              <Text style={styles.sessionLabel}>
-                {durationMinutes} min
-              </Text>
+              <Text style={styles.sessionLabel}>{durationMinutes} min</Text>
             </View>
             <View style={styles.statusPill}>
               <View

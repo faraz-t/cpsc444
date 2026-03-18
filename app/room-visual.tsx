@@ -1,8 +1,10 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { avatarSources, mockRooms, profileTodayStats } from "../data/mockData";
+import { avatarSources, mockRooms } from "../data/mockData";
 import FocusTimerStarter from "./components/session";
+import { useSessionStore } from "./state/session-store";
 
 type ChartEntity = {
   id: string;
@@ -51,6 +53,8 @@ function average(values: number[]) {
 
 export default function RoomVisualScreen() {
   const router = useRouter();
+  const { viewerStats, getMembersForRoom, setCurrentRoomId } =
+    useSessionStore();
   const params = useLocalSearchParams<{
     name?: string;
     avatar?: string;
@@ -77,8 +81,13 @@ export default function RoomVisualScreen() {
   const selectedRoom =
     mockRooms.find((room) => room.id === roomIdParam) ?? fallbackRoom;
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
+  const runtimeMembers = getMembersForRoom(selectedRoom.id);
 
-  const members: ChartEntity[] = selectedRoom.members.map((member) => ({
+  React.useEffect(() => {
+    setCurrentRoomId(selectedRoom.id);
+  }, [selectedRoom.id, setCurrentRoomId]);
+
+  const members: ChartEntity[] = runtimeMembers.map((member) => ({
     id: member.id,
     name: member.name,
     avatar: member.avatar,
@@ -93,10 +102,10 @@ export default function RoomVisualScreen() {
     id: "viewer-you",
     name: "You",
     avatar: viewerAvatarId,
-    focusMinutes: profileTodayStats.focusMinutes,
-    sessionsDone: profileTodayStats.sessionsDone,
-    streakDays: profileTodayStats.streakDays,
-    distractions: profileTodayStats.distractions,
+    focusMinutes: viewerStats.focusMinutes,
+    sessionsDone: viewerStats.sessionsDone,
+    streakDays: viewerStats.streakDays,
+    distractions: viewerStats.distractions,
   };
 
   const chartEntities = [viewerEntity, ...members];
@@ -255,13 +264,13 @@ const styles = StyleSheet.create({
     paddingTop: 26,
     paddingBottom: 40,
     backgroundColor: "#f2f8f7",
-    gap: 12,
   },
 
   heroCard: {
     borderRadius: 22,
     backgroundColor: "#12a495",
     padding: 16,
+    marginBottom: 12,
   },
 
   heroTopRow: {
@@ -308,6 +317,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: "#0a574f",
+    marginBottom: 12,
   },
 
   focusHeader: {
@@ -405,6 +415,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d7ebe7",
     padding: 12,
+    marginBottom: 12,
   },
 
   chartHeader: {
