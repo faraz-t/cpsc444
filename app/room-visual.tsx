@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { avatarSources, mockRooms, profileTodayStats } from "../data/mockData";
+import FocusTimerStarter from "./components/session";
 
 type ChartEntity = {
   id: string;
@@ -106,6 +107,7 @@ export default function RoomVisualScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <FocusTimerStarter />
       <View style={styles.heroCard}>
         <View style={styles.heroTopRow}>
           <View style={styles.heroTitleWrap}>
