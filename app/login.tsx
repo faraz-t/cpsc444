@@ -16,9 +16,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState("1");
-  const [selectedCondition, setSelectedCondition] = useState<"text" | "visual">(
-    "text",
-  );
+  const selectedCondition: "text" | "visual" = "text";
 
   const handleContinue = () => {
     const trimmedName = name.trim();
@@ -80,46 +78,6 @@ export default function LoginScreen() {
             );
           })}
         </View>
-
-        <Text style={[styles.subtitle, styles.conditionPrompt]}>
-          Please select a condition
-        </Text>
-        <View style={styles.conditionRow}>
-          <Pressable
-            style={[
-              styles.conditionButton,
-              selectedCondition === "text" && styles.conditionButtonSelected,
-            ]}
-            onPress={() => setSelectedCondition("text")}
-          >
-            <Text
-              style={[
-                styles.conditionText,
-                selectedCondition === "text" && styles.conditionTextSelected,
-              ]}
-            >
-              Text
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[
-              styles.conditionButton,
-              selectedCondition === "visual" && styles.conditionButtonSelected,
-            ]}
-            onPress={() => setSelectedCondition("visual")}
-          >
-            <Text
-              style={[
-                styles.conditionText,
-                selectedCondition === "visual" && styles.conditionTextSelected,
-              ]}
-            >
-              Visual
-            </Text>
-          </Pressable>
-        </View>
-
         <Pressable style={styles.primaryButton} onPress={handleContinue}>
           <Text style={styles.primaryButtonText}>Continue</Text>
         </Pressable>
@@ -161,37 +119,6 @@ const styles = StyleSheet.create({
   avatarPrompt: {
     marginTop: 4,
     marginBottom: 12,
-  },
-  conditionPrompt: {
-    marginTop: 2,
-    marginBottom: 10,
-  },
-  conditionRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 18,
-  },
-  conditionButton: {
-    flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#d6e8e4",
-    backgroundColor: "#f7fcfb",
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  conditionButtonSelected: {
-    borderColor: "#11897e",
-    backgroundColor: "#e8f6f3",
-  },
-  conditionText: {
-    fontSize: 16,
-    color: "#5f7672",
-    fontWeight: "600",
-  },
-  conditionTextSelected: {
-    color: "#0f6a61",
-    fontWeight: "700",
   },
   avatarGrid: {
     flexDirection: "row",

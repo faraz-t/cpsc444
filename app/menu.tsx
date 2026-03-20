@@ -72,7 +72,7 @@ export default function MainMenuScreen() {
             </View>
           </View>
           <Text style={styles.createButtonSubtext}>
-            Start a fresh accountability room and invite your friends.
+            Start a new accountability room and invite your friends.
           </Text>
           <View style={styles.createButtonInfoRow}>
             <View style={styles.createButtonInfoLeft}>
