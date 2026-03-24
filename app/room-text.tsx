@@ -6,6 +6,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { avatarSources, mockRooms, UserStatus } from "../data/mockData";
 import FocusTimerStarter from "./components/session";
 import { useSessionStore } from "./state/session-store";
+import InAppBanner from "./components/InAppBanner";
+import { Vibration } from "react-native";
 
 const statusStyles: Record<
   UserStatus,
@@ -63,8 +65,29 @@ export default function RoomScreen() {
     viewerStats.status === "Focusing"
       ? "focusing"
       : viewerStats.status === "Paused"
-        ? "break"
-        : "break";
+      ? "break"
+      : "break";
+  const [bannerVisible, setBannerVisible] = React.useState(false);
+  const [bannerMessage, setBannerMessage] = React.useState("");
+  React.useEffect(() => {
+    const timeout1 = setTimeout(() => {
+      setBannerMessage("Someone else just got distracted");
+      setBannerVisible(true);
+      Vibration.vibrate(100);
+    }, 1000 * 60 * 3);
+
+    const timeout2 = setTimeout(() => {
+      setBannerMessage("Time to focus");
+      setBannerVisible(true);
+      Vibration.vibrate(100);
+    }, 1000 * 60 * 0.2);
+
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+      setBannerVisible(false);
+    };
+  }, []);
 
   React.useEffect(() => {
     setCurrentRoomId(selectedRoom.id);
@@ -121,133 +144,149 @@ export default function RoomScreen() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <FocusTimerStarter />
-      <View style={styles.heroCard}>
-        <View style={styles.heroTopRow}>
-          <View style={styles.heroTitleWrap}>
-            <Text style={styles.roomTitle}>{roomName}</Text>
-            <Text style={styles.roomDescription}>{roomDescription}</Text>
-          </View>
-
-          <Pressable
-            style={styles.leaveButton}
-            onPress={() =>
-              router.push({
-                pathname: "./menu",
-                params: {
-                  ...(name ? { name } : {}),
-                  ...(avatar ? { avatar } : {}),
-                },
-              } as never)
-            }
-          >
-            <Text style={styles.leaveButtonText}>Leave</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.heroMetaRow}>
-          <View style={styles.heroMetaItem}>
-            <Ionicons name="time-outline" size={13} color="#d8fff9" />
-            <Text style={styles.heroMetaText}>
-              Created {selectedRoom.created}
-            </Text>
-          </View>
-          <View style={styles.heroMetaItem}>
-            <Ionicons name="globe-outline" size={13} color="#d8fff9" />
-            <Text style={styles.heroMetaText}>{selectedRoom.mode}</Text>
-          </View>
-          <View style={styles.heroMetaItem}>
-            <Ionicons name="people-outline" size={13} color="#d8fff9" />
-            <Text style={styles.heroMetaText}>{selectedRoom.capacity}</Text>
-          </View>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Today</Text>
-      <View style={styles.roomStatsGrid}>
-        {statCards.map((stat) => (
-          <View key={stat.key} style={styles.roomStatCard}>
-            <View
-              style={[styles.roomStatIconWrap, { backgroundColor: stat.tint }]}
-            >
-              <Ionicons name={stat.icon} size={16} color={stat.iconColor} />
+    <View style={{ flex: 1 }}>
+      <InAppBanner
+        message={bannerMessage}
+        visible={bannerVisible}
+        onHide={() => setBannerVisible(false)}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        <FocusTimerStarter />
+        <View style={styles.heroCard}>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroTitleWrap}>
+              <Text style={styles.roomTitle}>{roomName}</Text>
+              <Text style={styles.roomDescription}>{roomDescription}</Text>
             </View>
-            <Text style={styles.roomStatValue}>{stat.value}</Text>
-            <Text style={styles.roomStatLabel}>{stat.label}</Text>
+
+            <Pressable
+              style={styles.leaveButton}
+              onPress={() =>
+                router.push({
+                  pathname: "./menu",
+                  params: {
+                    ...(name ? { name } : {}),
+                    ...(avatar ? { avatar } : {}),
+                  },
+                } as never)
+              }
+            >
+              <Text style={styles.leaveButtonText}>Leave</Text>
+            </Pressable>
           </View>
-        ))}
-      </View>
 
-      <Text style={styles.sectionTitle}>Active Now</Text>
+          <View style={styles.heroMetaRow}>
+            <View style={styles.heroMetaItem}>
+              <Ionicons name="time-outline" size={13} color="#d8fff9" />
+              <Text style={styles.heroMetaText}>
+                Created {selectedRoom.created}
+              </Text>
+            </View>
+            <View style={styles.heroMetaItem}>
+              <Ionicons name="globe-outline" size={13} color="#d8fff9" />
+              <Text style={styles.heroMetaText}>{selectedRoom.mode}</Text>
+            </View>
+            <View style={styles.heroMetaItem}>
+              <Ionicons name="people-outline" size={13} color="#d8fff9" />
+              <Text style={styles.heroMetaText}>{selectedRoom.capacity}</Text>
+            </View>
+          </View>
+        </View>
 
-      {membersWithViewer.map((member) => {
-        const avatarSource = avatarSources[member.avatar];
-        const status = statusStyles[member.status];
-
-        return (
-          <View key={member.id} style={styles.memberCard}>
-            <View style={styles.memberTopRow}>
-              <View style={styles.memberIdentityRow}>
-                <View style={styles.memberAvatarWrap}>
-                  <Image
-                    source={avatarSource}
-                    contentFit="cover"
-                    style={styles.memberAvatarImage}
-                  />
-                </View>
-                <View>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberTimer}>{member.currentTimer}</Text>
-                </View>
-              </View>
-
+        <Text style={styles.sectionTitle}>Today</Text>
+        <View style={styles.roomStatsGrid}>
+          {statCards.map((stat) => (
+            <View key={stat.key} style={styles.roomStatCard}>
               <View
                 style={[
-                  styles.statusBadge,
-                  { backgroundColor: status.background },
+                  styles.roomStatIconWrap,
+                  { backgroundColor: stat.tint },
                 ]}
               >
+                <Ionicons name={stat.icon} size={16} color={stat.iconColor} />
+              </View>
+              <Text style={styles.roomStatValue}>{stat.value}</Text>
+              <Text style={styles.roomStatLabel}>{stat.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Active Now</Text>
+
+        {membersWithViewer.map((member) => {
+          const avatarSource = avatarSources[member.avatar];
+          const status = statusStyles[member.status];
+
+          return (
+            <View key={member.id} style={styles.memberCard}>
+              <View style={styles.memberTopRow}>
+                <View style={styles.memberIdentityRow}>
+                  <View style={styles.memberAvatarWrap}>
+                    <Image
+                      source={avatarSource}
+                      contentFit="cover"
+                      style={styles.memberAvatarImage}
+                    />
+                  </View>
+                  <View>
+                    <Text style={styles.memberName}>{member.name}</Text>
+                    <Text style={styles.memberTimer}>
+                      {member.currentTimer}
+                    </Text>
+                  </View>
+                </View>
+
                 <View
                   style={[
-                    styles.statusDot,
-                    { backgroundColor: status.dotColor },
+                    styles.statusBadge,
+                    { backgroundColor: status.background },
                   ]}
-                />
-                <Text style={[styles.statusText, { color: status.textColor }]}>
-                  {status.label}
-                </Text>
+                >
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: status.dotColor },
+                    ]}
+                  />
+                  <Text
+                    style={[styles.statusText, { color: status.textColor }]}
+                  >
+                    {status.label}
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.memberStatsRow}>
-              <View style={styles.memberStatItem}>
-                <Text style={styles.memberStatValue}>
-                  {member.focusMinutes}
-                </Text>
-                <Text style={styles.memberStatLabel}>Focus Min</Text>
-              </View>
-              <View style={styles.memberStatItem}>
-                <Text style={styles.memberStatValue}>
-                  {member.sessionsDone}
-                </Text>
-                <Text style={styles.memberStatLabel}>Sessions</Text>
-              </View>
-              <View style={styles.memberStatItem}>
-                <Text style={styles.memberStatValue}>
-                  {member.distractions}
-                </Text>
-                <Text style={styles.memberStatLabel}>Distractions</Text>
-              </View>
-              <View style={styles.memberStatItem}>
-                <Text style={styles.memberStatValue}>{member.streakDays}</Text>
-                <Text style={styles.memberStatLabel}>Streak</Text>
+              <View style={styles.memberStatsRow}>
+                <View style={styles.memberStatItem}>
+                  <Text style={styles.memberStatValue}>
+                    {member.focusMinutes}
+                  </Text>
+                  <Text style={styles.memberStatLabel}>Focus Min</Text>
+                </View>
+                <View style={styles.memberStatItem}>
+                  <Text style={styles.memberStatValue}>
+                    {member.sessionsDone}
+                  </Text>
+                  <Text style={styles.memberStatLabel}>Sessions</Text>
+                </View>
+                <View style={styles.memberStatItem}>
+                  <Text style={styles.memberStatValue}>
+                    {member.distractions}
+                  </Text>
+                  <Text style={styles.memberStatLabel}>Distractions</Text>
+                </View>
+                <View style={styles.memberStatItem}>
+                  <Text style={styles.memberStatValue}>
+                    {member.streakDays}
+                  </Text>
+                  <Text style={styles.memberStatLabel}>Streak</Text>
+                </View>
               </View>
             </View>
-          </View>
-        );
-      })}
-    </ScrollView>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 

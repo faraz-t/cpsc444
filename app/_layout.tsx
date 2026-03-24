@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 430,
     backgroundColor: "#f2f8f7",
-    overflow: "hidden",
+    // overflow: "hidden",
   },
   safeArea: {
     flex: 1,

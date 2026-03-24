@@ -5,6 +5,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { avatarSources, mockRooms } from "../data/mockData";
 import FocusTimerStarter from "./components/session";
 import { useSessionStore } from "./state/session-store";
+import InAppBanner from "./components/InAppBanner";
+import { Vibration } from "react-native";
 
 type ChartEntity = {
   id: string;
@@ -86,6 +88,27 @@ export default function RoomVisualScreen() {
   React.useEffect(() => {
     setCurrentRoomId(selectedRoom.id);
   }, [selectedRoom.id, setCurrentRoomId]);
+  const [bannerVisible, setBannerVisible] = React.useState(false);
+  const [bannerMessage, setBannerMessage] = React.useState("");
+  React.useEffect(() => {
+    const timeout1 = setTimeout(() => {
+      setBannerMessage("Someone else just got distracted");
+      setBannerVisible(true);
+      Vibration.vibrate(100);
+    }, 1000 * 60 * 3);
+
+    const timeout2 = setTimeout(() => {
+      setBannerMessage("Time to focus");
+      setBannerVisible(true);
+      Vibration.vibrate(100);
+    }, 1000 * 60 * 0.2);
+
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+      setBannerVisible(false);
+    };
+  }, []);
 
   const members: ChartEntity[] = runtimeMembers.map((member) => ({
     id: member.id,
@@ -115,146 +138,156 @@ export default function RoomVisualScreen() {
   const avgFocus = average(members.map((member) => member.focusMinutes));
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <FocusTimerStarter />
-      <View style={styles.heroCard}>
-        <View style={styles.heroTopRow}>
-          <View style={styles.heroTitleWrap}>
-            <Text style={styles.roomTitle}>{roomName}</Text>
-            <Text style={styles.roomDescription}>
-              {selectedRoom.description}
-            </Text>
-          </View>
-
-          <Pressable
-            style={styles.leaveButton}
-            onPress={() =>
-              router.push({
-                pathname: "./menu",
-                params: {
-                  ...(name ? { name } : {}),
-                  ...(avatar ? { avatar } : {}),
-                  ...(condition ? { condition } : {}),
-                },
-              } as never)
-            }
-          >
-            <Text style={styles.leaveButtonText}>Leave</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.focusCard}>
-        <View style={styles.focusHeader}>
-          <Text style={styles.focusTitle}>Focus Minutes</Text>
-          <Text style={styles.focusAvgText}>Avg: {avgFocus.toFixed(1)}</Text>
-        </View>
-
-        <View style={styles.raceChart}>
-          <View
-            style={[
-              styles.avgVerticalLine,
-              { left: `${(avgFocus / maxFocus) * 100}%` },
-            ]}
-          />
-
-          {chartEntities.map((member) => {
-            const progress = (member.focusMinutes / maxFocus) * 100;
-            const isViewer = member.id === viewerEntity.id;
-
-            return (
-              <View key={member.id} style={styles.raceRow}>
-                <Text style={styles.raceName}>{member.name}</Text>
-
-                <View style={styles.raceTrack}>
-                  <View
-                    style={[styles.raceProgress, { width: `${progress}%` }]}
-                  />
-
-                  <View
-                    style={[
-                      styles.racer,
-                      { left: `${progress}%` },
-                      isViewer && styles.viewerRacer,
-                    ]}
-                  >
-                    <Image
-                      source={avatarSources[member.avatar]}
-                      contentFit="cover"
-                      style={styles.racerAvatar}
-                    />
-                  </View>
-                </View>
-
-                <Text style={styles.raceValue}>{member.focusMinutes}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {metricConfigs.map((metric) => {
-        const values = chartEntities.map((member) => member[metric.key]);
-        const maxValue = Math.max(...values, 1);
-        const avgValue = average(members.map((member) => member[metric.key]));
-
-        return (
-          <View key={metric.key} style={styles.chartCard}>
-            <View style={styles.chartHeader}>
-              <Text style={styles.chartTitle}>{metric.title}</Text>
-              <Text style={styles.avgText}>Avg: {avgValue.toFixed(1)}</Text>
+    <View style={{ flex: 1 }}>
+      <InAppBanner
+        message={bannerMessage}
+        visible={bannerVisible}
+        onHide={() => setBannerVisible(false)}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        <FocusTimerStarter />
+        <View style={styles.heroCard}>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroTitleWrap}>
+              <Text style={styles.roomTitle}>{roomName}</Text>
+              <Text style={styles.roomDescription}>
+                {selectedRoom.description}
+              </Text>
             </View>
 
-            <View style={styles.chartArea}>
-              <View
-                style={[
-                  styles.avgLine,
-                  {
-                    bottom: `${(avgValue / maxValue) * 100}%`,
-                    borderColor: metric.avgColor,
+            <Pressable
+              style={styles.leaveButton}
+              onPress={() =>
+                router.push({
+                  pathname: "./menu",
+                  params: {
+                    ...(name ? { name } : {}),
+                    ...(avatar ? { avatar } : {}),
+                    ...(condition ? { condition } : {}),
                   },
-                ]}
-              />
+                } as never)
+              }
+            >
+              <Text style={styles.leaveButtonText}>Leave</Text>
+            </Pressable>
+          </View>
+        </View>
 
-              {chartEntities.map((member) => {
-                const value = member[metric.key];
-                const barHeight = Math.max(8, (value / maxValue) * 100);
-                const isViewer = member.id === viewerEntity.id;
+        <View style={styles.focusCard}>
+          <View style={styles.focusHeader}>
+            <Text style={styles.focusTitle}>Focus Minutes</Text>
+            <Text style={styles.focusAvgText}>Avg: {avgFocus.toFixed(1)}</Text>
+          </View>
 
-                return (
-                  <View key={member.id + metric.key} style={styles.columnWrap}>
-                    <Text style={styles.columnValue}>{value}</Text>
-                    <View style={styles.barTrack}>
-                      <View
-                        style={[
-                          styles.barFill,
-                          {
-                            height: `${barHeight}%`,
-                            backgroundColor: metric.color,
-                            borderWidth: isViewer ? 2 : 0,
-                            borderColor: isViewer ? "#173530" : "transparent",
-                          },
-                        ]}
+          <View style={styles.raceChart}>
+            <View
+              style={[
+                styles.avgVerticalLine,
+                { left: `${(avgFocus / maxFocus) * 100}%` },
+              ]}
+            />
+
+            {chartEntities.map((member) => {
+              const progress = (member.focusMinutes / maxFocus) * 100;
+              const isViewer = member.id === viewerEntity.id;
+
+              return (
+                <View key={member.id} style={styles.raceRow}>
+                  <Text style={styles.raceName}>{member.name}</Text>
+
+                  <View style={styles.raceTrack}>
+                    <View
+                      style={[styles.raceProgress, { width: `${progress}%` }]}
+                    />
+
+                    <View
+                      style={[
+                        styles.racer,
+                        { left: `${progress}%` },
+                        isViewer && styles.viewerRacer,
+                      ]}
+                    >
+                      <Image
+                        source={avatarSources[member.avatar]}
+                        contentFit="cover"
+                        style={styles.racerAvatar}
                       />
                     </View>
-                    <View style={styles.memberTagWrap}>
-                      <View style={styles.memberAvatarWrap}>
-                        <Image
-                          source={avatarSources[member.avatar]}
-                          contentFit="cover"
-                          style={styles.memberAvatarImage}
+                  </View>
+
+                  <Text style={styles.raceValue}>{member.focusMinutes}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {metricConfigs.map((metric) => {
+          const values = chartEntities.map((member) => member[metric.key]);
+          const maxValue = Math.max(...values, 1);
+          const avgValue = average(members.map((member) => member[metric.key]));
+
+          return (
+            <View key={metric.key} style={styles.chartCard}>
+              <View style={styles.chartHeader}>
+                <Text style={styles.chartTitle}>{metric.title}</Text>
+                <Text style={styles.avgText}>Avg: {avgValue.toFixed(1)}</Text>
+              </View>
+
+              <View style={styles.chartArea}>
+                <View
+                  style={[
+                    styles.avgLine,
+                    {
+                      bottom: `${(avgValue / maxValue) * 100}%`,
+                      borderColor: metric.avgColor,
+                    },
+                  ]}
+                />
+
+                {chartEntities.map((member) => {
+                  const value = member[metric.key];
+                  const barHeight = Math.max(8, (value / maxValue) * 100);
+                  const isViewer = member.id === viewerEntity.id;
+
+                  return (
+                    <View
+                      key={member.id + metric.key}
+                      style={styles.columnWrap}
+                    >
+                      <Text style={styles.columnValue}>{value}</Text>
+                      <View style={styles.barTrack}>
+                        <View
+                          style={[
+                            styles.barFill,
+                            {
+                              height: `${barHeight}%`,
+                              backgroundColor: metric.color,
+                              borderWidth: isViewer ? 2 : 0,
+                              borderColor: isViewer ? "#173530" : "transparent",
+                            },
+                          ]}
                         />
                       </View>
-                      <Text style={styles.memberName}>{member.name}</Text>
+                      <View style={styles.memberTagWrap}>
+                        <View style={styles.memberAvatarWrap}>
+                          <Image
+                            source={avatarSources[member.avatar]}
+                            contentFit="cover"
+                            style={styles.memberAvatarImage}
+                          />
+                        </View>
+                        <Text style={styles.memberName}>{member.name}</Text>
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
-        );
-      })}
-    </ScrollView>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
