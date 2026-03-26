@@ -2,12 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  Vibration,
+  View,
+} from "react-native";
 import { avatarSources, mockRooms, UserStatus } from "../data/mockData";
+import InAppBanner from "./components/InAppBanner";
 import FocusTimerStarter from "./components/session";
 import { useSessionStore } from "./state/session-store";
-import InAppBanner from "./components/InAppBanner";
-import { Vibration } from "react-native";
 
 const statusStyles: Record<
   UserStatus,
@@ -35,8 +41,14 @@ const statusStyles: Record<
 
 export default function RoomScreen() {
   const router = useRouter();
-  const { viewerStats, getMembersForRoom, setCurrentRoomId } =
-    useSessionStore();
+  const {
+    viewerStats,
+    getMembersForRoom,
+    getRoomSummary,
+    setCurrentRoomId,
+    bannerEvent,
+    clearBannerEvent,
+  } = useSessionStore();
   const params = useLocalSearchParams<{
     name?: string;
     avatar?: string;
@@ -56,38 +68,27 @@ export default function RoomScreen() {
   const fallbackRoom = mockRooms[0];
   const selectedRoom =
     mockRooms.find((room) => room.id === roomIdParam) ?? fallbackRoom;
-  const roomSummaryStats = selectedRoom.summary;
+  const roomSummaryStats = getRoomSummary(selectedRoom.id);
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
   const roomDescription = selectedRoom.description;
   const viewerAvatarId = avatar && avatarSources[avatar] ? avatar : "1";
   const runtimeMembers = getMembersForRoom(selectedRoom.id);
+  const scopedBannerEvent =
+    bannerEvent &&
+    (!bannerEvent.roomId || bannerEvent.roomId === selectedRoom.id)
+      ? bannerEvent
+      : null;
   const viewerStatus: UserStatus =
     viewerStats.status === "Focusing"
       ? "focusing"
       : viewerStats.status === "Paused"
-      ? "break"
-      : "break";
-  const [bannerVisible, setBannerVisible] = React.useState(false);
-  const [bannerMessage, setBannerMessage] = React.useState("");
+        ? "break"
+        : "break";
   React.useEffect(() => {
-    const timeout1 = setTimeout(() => {
-      setBannerMessage("Someone else just got distracted");
-      setBannerVisible(true);
-      Vibration.vibrate(100);
-    }, 1000 * 60 * 3);
-
-    const timeout2 = setTimeout(() => {
-      setBannerMessage("Time to focus");
-      setBannerVisible(true);
-      Vibration.vibrate(100);
-    }, 1000 * 60 * 0.2);
-
-    return () => {
-      clearTimeout(timeout1);
-      clearTimeout(timeout2);
-      setBannerVisible(false);
-    };
-  }, []);
+    if (scopedBannerEvent) {
+      Vibration.vibrate(80);
+    }
+  }, [scopedBannerEvent]);
 
   React.useEffect(() => {
     setCurrentRoomId(selectedRoom.id);
@@ -146,9 +147,9 @@ export default function RoomScreen() {
   return (
     <View style={{ flex: 1 }}>
       <InAppBanner
-        message={bannerMessage}
-        visible={bannerVisible}
-        onHide={() => setBannerVisible(false)}
+        message={scopedBannerEvent?.message ?? ""}
+        visible={Boolean(scopedBannerEvent)}
+        onHide={clearBannerEvent}
       />
       <ScrollView contentContainerStyle={styles.container}>
         <FocusTimerStarter />

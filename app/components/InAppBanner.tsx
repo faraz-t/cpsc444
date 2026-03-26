@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text } from "react-native";
 
 type Props = {
   message: string;
@@ -9,6 +9,11 @@ type Props = {
 
 export default function InAppBanner({ message, visible, onHide }: Props) {
   const translateY = useRef(new Animated.Value(-200)).current;
+  const onHideRef = useRef(onHide);
+
+  useEffect(() => {
+    onHideRef.current = onHide;
+  }, [onHide]);
 
   useEffect(() => {
     if (visible) {
@@ -19,26 +24,27 @@ export default function InAppBanner({ message, visible, onHide }: Props) {
         useNativeDriver: true,
       }).start();
 
-      // Auto hide after 3s
+      // Auto hide after 6s
       const timeout = setTimeout(() => {
         Animated.timing(translateY, {
           toValue: -200,
           duration: 300,
           useNativeDriver: true,
-        }).start(() => onHide());
-      }, 3000);
+        }).start(() => onHideRef.current());
+      }, 6000);
 
       return () => clearTimeout(timeout);
     }
-  }, [visible]);
+
+    Animated.timing(translateY, {
+      toValue: -200,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [message, translateY, visible]);
 
   return (
-    <Animated.View
-      style={[
-        styles.banner,
-        { transform: [{ translateY }] },
-      ]}
-    >
+    <Animated.View style={[styles.banner, { transform: [{ translateY }] }]}>
       <Text style={styles.text}>{message}</Text>
     </Animated.View>
   );

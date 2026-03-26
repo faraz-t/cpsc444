@@ -1,12 +1,18 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    Vibration,
+    View,
+} from "react-native";
 import { avatarSources, mockRooms } from "../data/mockData";
+import InAppBanner from "./components/InAppBanner";
 import FocusTimerStarter from "./components/session";
 import { useSessionStore } from "./state/session-store";
-import InAppBanner from "./components/InAppBanner";
-import { Vibration } from "react-native";
 
 type ChartEntity = {
   id: string;
@@ -55,8 +61,13 @@ function average(values: number[]) {
 
 export default function RoomVisualScreen() {
   const router = useRouter();
-  const { viewerStats, getMembersForRoom, setCurrentRoomId } =
-    useSessionStore();
+  const {
+    viewerStats,
+    getMembersForRoom,
+    setCurrentRoomId,
+    bannerEvent,
+    clearBannerEvent,
+  } = useSessionStore();
   const params = useLocalSearchParams<{
     name?: string;
     avatar?: string;
@@ -84,31 +95,21 @@ export default function RoomVisualScreen() {
     mockRooms.find((room) => room.id === roomIdParam) ?? fallbackRoom;
   const roomName = roomNameParam?.trim() ? roomNameParam : selectedRoom.name;
   const runtimeMembers = getMembersForRoom(selectedRoom.id);
+  const scopedBannerEvent =
+    bannerEvent &&
+    (!bannerEvent.roomId || bannerEvent.roomId === selectedRoom.id)
+      ? bannerEvent
+      : null;
 
   React.useEffect(() => {
     setCurrentRoomId(selectedRoom.id);
   }, [selectedRoom.id, setCurrentRoomId]);
-  const [bannerVisible, setBannerVisible] = React.useState(false);
-  const [bannerMessage, setBannerMessage] = React.useState("");
+
   React.useEffect(() => {
-    const timeout1 = setTimeout(() => {
-      setBannerMessage("Someone else just got distracted");
-      setBannerVisible(true);
-      Vibration.vibrate(100);
-    }, 1000 * 60 * 3);
-
-    const timeout2 = setTimeout(() => {
-      setBannerMessage("Time to focus");
-      setBannerVisible(true);
-      Vibration.vibrate(100);
-    }, 1000 * 60 * 0.2);
-
-    return () => {
-      clearTimeout(timeout1);
-      clearTimeout(timeout2);
-      setBannerVisible(false);
-    };
-  }, []);
+    if (scopedBannerEvent) {
+      Vibration.vibrate(80);
+    }
+  }, [scopedBannerEvent]);
 
   const members: ChartEntity[] = runtimeMembers.map((member) => ({
     id: member.id,
@@ -140,9 +141,9 @@ export default function RoomVisualScreen() {
   return (
     <View style={{ flex: 1 }}>
       <InAppBanner
-        message={bannerMessage}
-        visible={bannerVisible}
-        onHide={() => setBannerVisible(false)}
+        message={scopedBannerEvent?.message ?? ""}
+        visible={Boolean(scopedBannerEvent)}
+        onHide={clearBannerEvent}
       />
       <ScrollView contentContainerStyle={styles.container}>
         <FocusTimerStarter />
