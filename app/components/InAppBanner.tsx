@@ -17,14 +17,12 @@ export default function InAppBanner({ message, visible, onHide }: Props) {
 
   useEffect(() => {
     if (visible) {
-      // Slide down
       Animated.timing(translateY, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
 
-      // Auto hide after 6s
       const timeout = setTimeout(() => {
         Animated.timing(translateY, {
           toValue: -200,
